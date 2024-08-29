@@ -1,5 +1,5 @@
 import { UserState } from "../CustomTypes";
-import { useDispatch, UseDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { AppDispatch } from "../redux/store";
 import { login } from "../redux/features/userSlice";
 

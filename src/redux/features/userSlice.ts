@@ -44,5 +44,5 @@ export const user = createSlice({
     }
 })
 
-export const { login } = user.actions;
+export const { login, get_user } = user.actions;
 export default user.reducer
