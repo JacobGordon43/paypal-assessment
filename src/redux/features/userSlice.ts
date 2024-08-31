@@ -18,8 +18,9 @@ const initialState = {
             street: "",
             country: "",
             state: "",
+            city: ""
         },
-        cart: <Product[]>[]
+        cart: {products: <Product[]>[], totalPrice: 0}
     }
 }
 
@@ -28,14 +29,12 @@ export const user = createSlice({
     initialState, 
     reducers: {
         login: (state, action: PayloadAction<UserState>) =>{
-            initialState.value.email = action.payload.email;
-            initialState.value.firstName = action.payload.firstName;
-            initialState.value.lastName = action.payload.lastName;
-            initialState.value.address = action.payload.address;
-            initialState.value.phoneNumber = action.payload.phoneNumber;
-            initialState.value.cart = action.payload.cart;
-
-            return initialState;
+            state.value.email = action.payload.email;
+            state.value.firstName = action.payload.firstName;
+            state.value.lastName = action.payload.lastName;
+            state.value.address = action.payload.address;
+            state.value.phoneNumber = action.payload.phoneNumber;
+            state.value.cart = action.payload.cart;
         },
 
         get_user: (state, action: PayloadAction<UserState>)=>{

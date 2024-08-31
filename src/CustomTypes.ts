@@ -5,7 +5,7 @@ type UserState = {
     email: string,
     phoneNumber: string,
     address: Address
-    cart: Array<Product>
+    cart: Cart
 }
 
 type Address = {
@@ -22,4 +22,9 @@ type Product = {
     itemNumber: number
 }
 
-export type {Address, Product, UserState}
+type Cart = {
+    products: Product[],
+    totalPrice: number
+}
+
+export type {Address, Product, UserState, Cart}

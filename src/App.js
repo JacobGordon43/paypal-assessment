@@ -1,11 +1,11 @@
-import logo from './logo.svg';
-import './App.css';
 import { Route, Routes} from 'react-router-dom';
 import Checkout from './views/checkout';
+import Confirmation from './views/confirmation'
 function App() {
   return (
     <Routes>
-      <Route path="/checkout" element={<Checkout />} />
+      <Route path="/" element={<Checkout />} />
+      <Route path='/confirmation' element={<Confirmation />}/>
     </Routes>
   );
 }
