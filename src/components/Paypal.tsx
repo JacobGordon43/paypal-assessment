@@ -5,8 +5,14 @@ import { useAppSelector } from '../redux/store';
 import { Cart } from 'CustomTypes';
 import { useNavigate } from 'react-router-dom';
 
- export default function Paypal (cart : Cart){
+interface PaypalInterface{
+    user: UserState,
+    cart: Cart,
+    onClick: () => void
+}
+ export default function Paypal ({user, cart, onClick} : PaypalInterface){
     const navigagte = useNavigate();
+    console.log(user.firstName)
     const clientId : string = process.env.REACT_APP_PAYPAL_CLIENT_ID!;
         const initialOptions: ReactPayPalScriptOptions = {
             clientId: clientId,
@@ -19,26 +25,41 @@ import { useNavigate } from 'react-router-dom';
             purchase_units: [
                 {
                     amount: {
+                        // currency_code: "USD",
                         value: cart.totalPrice.toString()
                     }, 
-                    phone_number: "4802500084",
-                    address: {
-                        address_line_1: "4435 W. Sweewater Ave",
-                        admin_area_2: "Phoenix",
-                        admin_area_1: "Arizona",
-                        postal_code: "85304",
-                        country_code: "US"
+                    shipping: {
+                        address: {
+                            address_line_1: "4435 W. Sweetwater Ave",
+                            admin_area_2: "Phoenix",
+                            admin_area_1: "AZ",
+                            postal_code: "85304",
+                            country_code: "US"
+                        }
                     }
                 },
+                // {
+                //     shipping: {
+                //         address: {
+                //             address_line_1: "2211 N First Street",
+
+                //         }
+                //     }
+                // }
 
             ],         
             payer: {
                 name: {
-                    given_name: "Jacob",
-                    surname: "Gordon", 
-                }
-            }, address:{
-                address_line_1: "4435 W. Sweetwater Ave"
+                    given_name: user.firstName,
+                    surname: user.lastName, 
+                }, 
+                phone: {
+                    phone_type: "MOBILE",
+                    phone_number: {
+                        national_number: "6238891812"
+                    }
+                },
+                email_address: user.email,
             }
         
         })
@@ -57,7 +78,7 @@ import { useNavigate } from 'react-router-dom';
 
     return(
         <PayPalScriptProvider  options={initialOptions}>
-            <PayPalButtons onApprove={(data, actions) =>onApprove(data, actions)} createOrder={(data, actions)=>onCreateOrder(data, actions)}/>
+            <PayPalButtons onClick={onClick} onApprove={(data, actions) =>onApprove(data, actions)} createOrder={(data, actions)=>onCreateOrder(data, actions)} onCancel={(data)=>{window.alert("Transaction cancalled")}} onError={(data)=>{(window.alert("There was an error with paypal"))}}/>
         </PayPalScriptProvider>
     )
 }

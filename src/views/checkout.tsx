@@ -2,9 +2,10 @@ import React, {useEffect, useState} from 'react';
 import {TextField, Typography} from "@mui/material";
 import { UserState } from '../CustomTypes';
 import { useAppSelector } from '../redux/store';
-import { useLogin } from 'data_access/login';
+import { useLogin } from 'backend/login';
 import Paypal from 'components/Paypal';
 import ProductCard from 'components/ProductCard';
+import verifyAddress from 'backend/verify_address';
 export default function Checkout(){
   //Login hook is created and called into the useEffect to call it once. Prevents rerendering issues
   const login = useLogin();
@@ -12,20 +13,7 @@ export default function Checkout(){
 
   const [addressValid, setAddressValid] = useState<null | Boolean>(true)
   const [loading, setLoading] = useState(true)
-  // const validateAddress = async () =>{
-  //   const client = new Client();
-  //   try{
-  //     const response = await client.geocode({
-  //       params: {
-  //         address: "",
-  //         components: 'country:US',
-  //         key: process.env.google_key!
-  //       }
-  //     })
-  //   }catch(e){
-  //     console.log(e);
-  //   }
-  // }
+
   useEffect(()=>{
     console.log("logging in")
   login()
@@ -59,14 +47,16 @@ useEffect(()=>{
     setCountry(user.address.country);
     setState(user.address.state);
     setCart(user.cart);
+
   }
 }, [loading, user])
   user = useAppSelector((state)=>state.userReducer.value)
 
-//Formats a user's phone number
-    // function formatPhoneNumber(phoneString: string){
-    //     if(phoneString.length == 3 && phoneString[2] = 4)
-    // }
+  const handleOnClick = () =>{
+    console.log(street + ", " + city + ", " + state + " " + zip + ", " + country)
+    verifyAddress(street + ", " + city + ", " + state + " " + zip + ", " + country)
+    //Add new logic that sets the user's info
+  }
 
     return (
       <div className="container mt-4">
@@ -186,10 +176,10 @@ useEffect(()=>{
                   <ProductCard {...product} />
                 </div>
               ))}
-              <Typography variant='h5' className='mb-3'>Total:</Typography>
+              <Typography variant='h5' className='mb-1'>Total:</Typography>
               <Typography variant='h5' className='mb-3'>${cart.totalPrice}</Typography>
 
-            {cart.products.length > 0 && <Paypal {...cart} />}
+            {(cart.products.length > 0) && <Paypal onClick={handleOnClick} cart={cart} user={user} />}
             
             </div>
           </div>
