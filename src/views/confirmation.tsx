@@ -31,7 +31,7 @@ export default function Confirmation() {
           </div>
           <div className="col-md-6">
             <Typography variant="body2">
-              <strong>Order Date:</strong> {months[new Date().getMonth()-1]} {date.getDay()} 
+              <strong>Order Date:</strong> {months[new Date().getMonth()]} {date.getDate()} 
             </Typography>
           </div>
         </div>

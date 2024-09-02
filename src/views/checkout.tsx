@@ -1,192 +1,179 @@
-import React, {useEffect, useState} from 'react';
-import {TextField, Typography} from "@mui/material";
-import { UserState } from '../CustomTypes';
+import React, { useState, useEffect, useCallback } from 'react';
+import { TextField, Typography } from "@mui/material";
 import { useAppSelector } from '../redux/store';
-import { useLogin } from 'backend/login';
+import { useDispatch, useSelector } from "react-redux";
+
+import { set_user } from "../redux/features/userSlice";
 import Paypal from 'components/Paypal';
 import ProductCard from 'components/ProductCard';
+import { useLogin } from 'backend/login';
 import verifyAddress from 'backend/verify_address';
-export default function Checkout(){
-  //Login hook is created and called into the useEffect to call it once. Prevents rerendering issues
+
+export default function Checkout() {
   const login = useLogin();
-  let user : UserState= useAppSelector((state)=>state.userReducer.value)
+  const dispatch = useDispatch();
+  const user = useAppSelector((state) => state.userReducer.value);
+  const [addressValid, setAddressValid] = useState<boolean | undefined>(true);
+  const [loading, setLoading] = useState(true);
+  const [validationMessage, setValidationMessage] = useState("");
 
-  const [addressValid, setAddressValid] = useState<null | Boolean>(true)
-  const [loading, setLoading] = useState(true)
+  useEffect(() => {
+    if (user.id === "") {
+      console.log("logging in");
+      login();
+      setLoading(false);
+    }
+  }, []);
 
-  useEffect(()=>{
-    console.log("logging in")
-  login()
-  setLoading(false);
-}, [])
+  useEffect(() => {
+    if (!loading && user.id === "") {
+      dispatch(set_user(user)); // Initialize user if not set
+    }
+  }, [loading, user, dispatch]);
 
-    //User data
-    const [firstName, setFirstName] = useState(user.firstName);
-    const [lastName, setLastName] = useState(user.lastName);
-    const [email, setEmail] = useState(user.email);
-    const [phoneNumber, setPhoneNumber] = useState(user.phoneNumber);
-    const [cart, setCart] = useState(user.cart)
-    //User address data
-    const [street, setStreet] = useState(user.address.street);
-    const [city, setCity] = useState(user.address.city);
-    const [zip, setZip] = useState(user.address.zip);
-    const [country, setCountry] = useState(user.address.country);
-    const [state, setState] = useState(user.address.state);
-    const [validationMessage, setValidationMessage] = useState("")
+  const handleOnClick = useCallback(async () => {
+    console.log("handleOnClick called with:", user);
+    const valid = await verifyAddress(`${user.address.street}, ${user.address.city}, ${user.address.state} ${user.address.zip}, ${user.address.country}`);
+    setAddressValid(valid);
+    setValidationMessage(valid ? "" : "Invalid Address");
+    return valid;
+  }, [user]);
 
+  const handleInputChange = (field: string, value: string) => {
+    dispatch(set_user({ ...user, [field]: value }));
+    console.log(user)
+  };
 
-useEffect(()=>{
-  if(!loading && user && user.id == ""){
-    setFirstName(user.firstName);
-    setLastName(user.lastName);
-    setEmail(user.email);
-    setPhoneNumber(user.phoneNumber);
-    setStreet(user.address.street);
-    setCity(user.address.city);
-    setZip(user.address.zip);
-    setCountry(user.address.country);
-    setState(user.address.state);
-    setCart(user.cart);
+  const handleAddressChange = (field: string, value: string) => {
+    dispatch(set_user({ ...user, address: { ...user.address, [field]: value } }));
+    console.log(user)
+  };
 
-  }
-}, [loading, user])
-  user = useAppSelector((state)=>state.userReducer.value)
-
-  const handleOnClick = () =>{
-    console.log(street + ", " + city + ", " + state + " " + zip + ", " + country)
-    verifyAddress(street + ", " + city + ", " + state + " " + zip + ", " + country)
-    //Add new logic that sets the user's info
-  }
-
-    return (
-      <div className="container mt-4">
-        <div className="row">
-          {/* User Information and Address */}
-          <div className="col-12 col-lg-8">
-            <Typography variant="h4" className="mb-3">Personal Information</Typography>
-            {/* Personal Information Fields */}
-            <div className="row">
-              <div className="col-md-6 mb-3">
-                <TextField
-                  label="First Name"
-                  variant="outlined"
-                  fullWidth
-                  value={firstName}
-                  onChange={e => setFirstName(e.target.value)}
-                />
-              </div>
-              <div className="col-md-6 mb-3">
-                <TextField
-                  label="Last Name"
-                  variant="outlined"
-                  fullWidth
-                  value={lastName}
-                  onChange={e => setLastName(e.target.value)}
-                />
-              </div>
+  return (
+    <div className="container mt-4">
+      <div className="row">
+        {/* User Information and Address */}
+        <div className="col-12 col-lg-8">
+          <Typography variant="h4" className="mb-3">Personal Information</Typography>
+          <div className="row">
+            <div className="col-md-6 mb-3">
+              <TextField
+                label="First Name"
+                variant="outlined"
+                fullWidth
+                value={user.firstName}
+                onChange={e => handleInputChange('firstName', e.target.value)}
+              />
             </div>
-            <div className="row">
-              <div className="col-md-6 mb-3">
-                <TextField
-                  label="Email"
-                  variant="outlined"
-                  fullWidth
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                />
-              </div>
-              <div className="col-md-6 mb-3">
-                <TextField
-                  label="Phone Number"
-                  variant="outlined"
-                  fullWidth
-                  value={phoneNumber}
-                  onChange={e => setPhoneNumber(e.target.value)}
-                />
-              </div>
-            </div>
-            <Typography variant="h4" className="mb-3">Address Information</Typography>
-            {/* Address Information Fields */}
-            <div className="row">
-              <div className="col-md-6 mb-3">
-                <TextField
-                  label="Country"
-                  color={addressValid ? 'success' : 'error'}
-                  variant="outlined"
-                  fullWidth
-                  value={country}
-                  onChange={e => setCountry(e.target.value)}
-                />
-              </div>
-              <div className="col-md-6 mb-3">
-                <TextField
-                  label="State"
-                  color={addressValid ? 'success' : 'error'}
-                  variant="outlined"
-                  fullWidth
-                  value={state}
-                  onChange={e => setState(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="row">
-              <div className="col-md-6 mb-3">
-                <TextField
-                  label="City"
-                  color={addressValid ? 'success' : 'error'}
-                  variant="outlined"
-                  fullWidth
-                  value={city}
-                  onChange={e => setCity(e.target.value)}
-                />
-              </div>
-              <div className="col-md-6 mb-3">
-                <TextField
-                  label="Zipcode"
-                  color={addressValid ? 'success' : 'error'}
-                  variant="outlined"
-                  fullWidth
-                  value={zip}
-                  onChange={e => setZip(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="row">
-              <div className="col-md-12 mb-3">
-                <TextField
-                  label="Street"
-                  color={addressValid ? 'success' : 'error'}
-                  variant="outlined"
-                  fullWidth
-                  value={street}
-                  onChange={e => setStreet(e.target.value)}
-                />
-              </div>
+            <div className="col-md-6 mb-3">
+              <TextField
+                label="Last Name"
+                variant="outlined"
+                fullWidth
+                value={user.lastName}
+                onChange={e => handleInputChange('lastName', e.target.value)}
+              />
             </div>
           </div>
-    
-          {/* PayPal and Cart */}
-          <div className="col-12 col-lg-4 mt-4 mt-lg-0">
-            {/* PayPal Component */}
-            <Typography variant="h4" className="mt-4 mb-3">Your Cart</Typography>
-            {/* Display Cart Items */}
-            <div className="row">
-              {cart.products.map((product, index) => (
-                <div className="col-12 mb-3" key={index}>
-                  <ProductCard {...product} />
-                </div>
-              ))}
-              <Typography variant='h5' className='mb-1'>Total:</Typography>
-              <Typography variant='h5' className='mb-3'>${cart.totalPrice}</Typography>
-
-            {(cart.products.length > 0) && <Paypal onClick={handleOnClick} cart={cart} user={user} />}
-            
+          <div className="row">
+            <div className="col-md-6 mb-3">
+              <TextField
+                label="Email"
+                variant="outlined"
+                fullWidth
+                value={user.email}
+                onChange={e => handleInputChange('email', e.target.value)}
+              />
+            </div>
+            <div className="col-md-6 mb-3">
+              <TextField
+                label="Phone Number"
+                variant="outlined"
+                fullWidth
+                value={user.phoneNumber}
+                onChange={e => handleInputChange('phoneNumber', e.target.value)}
+              />
+            </div>
+          </div>
+          <Typography variant="h4" className="mb-3">Address Information</Typography>
+          <div className="row">
+            <div className="col-md-6 mb-3">
+              <TextField
+                label="Country"
+                variant="outlined"
+                error={!addressValid}
+                helperText={validationMessage}
+                fullWidth
+                value={user.address.country}
+                onChange={e => handleAddressChange('country', e.target.value)}
+              />
+            </div>
+            <div className="col-md-6 mb-3">
+              <TextField
+                label="State"
+                variant="outlined"
+                error={!addressValid}
+                helperText={validationMessage}
+                fullWidth
+                value={user.address.state}
+                onChange={e => handleAddressChange('state', e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="row">
+            <div className="col-md-6 mb-3">
+              <TextField
+                label="City"
+                variant="outlined"
+                error={!addressValid}
+                helperText={validationMessage}
+                fullWidth
+                value={user.address.city}
+                onChange={e => handleAddressChange('city', e.target.value)}
+              />
+            </div>
+            <div className="col-md-6 mb-3">
+              <TextField
+                label="Zipcode"
+                variant="outlined"
+                error={!addressValid}
+                helperText={validationMessage}
+                fullWidth
+                value={user.address.zip}
+                onChange={e => handleAddressChange('zip', e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="row">
+            <div className="col-md-12 mb-3">
+              <TextField
+                label="Street"
+                variant="outlined"
+                error={!addressValid}
+                helperText={validationMessage}
+                fullWidth
+                value={user.address.street}
+                onChange={e => handleAddressChange('street', e.target.value)}
+              />
             </div>
           </div>
         </div>
+        
+        {/* PayPal and Cart */}
+        <div className="col-12 col-lg-4 mt-4 mt-lg-0">
+          <Typography variant="h4" className="mt-4 mb-3">Your Cart</Typography>
+          <div className="row">
+            {user.cart.products.map((product, index) => (
+              <div className="col-12 mb-3" key={index}>
+                <ProductCard {...product} />
+              </div>
+            ))}
+            <Typography variant='h5' className='mb-1'>Total:</Typography>
+            <Typography variant='h5' className='mb-3'>${user.cart.totalPrice}</Typography>
+            {user.cart.products.length > 0 && <Paypal onClick={handleOnClick} />}
+          </div>
+        </div>
       </div>
-    );
-    
-    
-
+    </div>
+  );
 }
