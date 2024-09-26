@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { TextField, Typography } from "@mui/material";
+import { useAppSelector } from '../redux/store';
+import { useDispatch, useSelector } from "react-redux";
+
+import { set_user } from "../redux/features/userSlice";
 import Paypal from 'components/Paypal';
 import ProductCard from 'components/ProductCard';
 import VerifyAddress from 'backend/verify_address';
@@ -25,21 +29,10 @@ export default function Checkout() {
       city: "Glendale"
     }
   });
-  const [tempUser, setTempUser] = useState(user)
   const [addressValid, setAddressValid] = useState<boolean | undefined>(true);
+  const [loading, setLoading] = useState(true);
   const [validationMessage, setValidationMessage] = useState("");
-  //Debounce logic
-  const delay = 300;
-  useEffect(()=>{
-    const handler = setInterval(()=>{
-      setUser(tempUser);
-    }, delay)
 
-    return ()=>{
-      clearTimeout(handler)
-    }
-  },
-[tempUser])
 
   const handleOnClick = useCallback(async () => {
     console.log("handleOnClick called with:", user);
@@ -50,14 +43,14 @@ export default function Checkout() {
   }, [user]);
 
   const handleInputChange = (field : string, value : string) => {
-    setTempUser((prevUser) => ({
+    setUser((prevUser) => ({
       ...prevUser,
       [field]: value,
     }));
   };
   
   const handleAddressChange = (field : string, value : string) => {
-    setTempUser((prevUser) => ({
+    setUser((prevUser) => ({
       ...prevUser,
       address: {
         ...prevUser.address,
@@ -78,7 +71,7 @@ export default function Checkout() {
                 label="First Name"
                 variant="outlined"
                 fullWidth
-                value={tempUser.firstName}
+                value={user.firstName}
                 onChange={e => handleInputChange('firstName', e.target.value)}
               />
             </div>
@@ -87,7 +80,7 @@ export default function Checkout() {
                 label="Last Name"
                 variant="outlined"
                 fullWidth
-                value={tempUser.lastName}
+                value={user.lastName}
                 onChange={e => handleInputChange('lastName', e.target.value)}
               />
             </div>
@@ -98,7 +91,7 @@ export default function Checkout() {
                 label="Email"
                 variant="outlined"
                 fullWidth
-                value={tempUser.email}
+                value={user.email}
                 onChange={e => handleInputChange('email', e.target.value)}
               />
             </div>
@@ -107,7 +100,7 @@ export default function Checkout() {
                 label="Phone Number"
                 variant="outlined"
                 fullWidth
-                value={tempUser.phoneNumber}
+                value={user.phoneNumber}
                 onChange={e => handleInputChange('phoneNumber', e.target.value)}
               />
             </div>
@@ -121,7 +114,7 @@ export default function Checkout() {
                 error={!addressValid}
                 helperText={validationMessage}
                 fullWidth
-                value={tempUser.address.country}
+                value={user.address.country}
                 onChange={e => handleAddressChange('country', e.target.value)}
               />
             </div>
@@ -132,7 +125,7 @@ export default function Checkout() {
                 error={!addressValid}
                 helperText={validationMessage}
                 fullWidth
-                value={tempUser.address.state}
+                value={user.address.state}
                 onChange={e => handleAddressChange('state', e.target.value)}
               />
             </div>
@@ -145,7 +138,7 @@ export default function Checkout() {
                 error={!addressValid}
                 helperText={validationMessage}
                 fullWidth
-                value={tempUser.address.city}
+                value={user.address.city}
                 onChange={e => handleAddressChange('city', e.target.value)}
               />
             </div>
@@ -156,7 +149,7 @@ export default function Checkout() {
                 error={!addressValid}
                 helperText={validationMessage}
                 fullWidth
-                value={tempUser.address.zip}
+                value={user.address.zip}
                 onChange={e => handleAddressChange('zip', e.target.value)}
               />
             </div>
@@ -169,7 +162,7 @@ export default function Checkout() {
                 error={!addressValid}
                 helperText={validationMessage}
                 fullWidth
-                value={tempUser.address.street}
+                value={user.address.street}
                 onChange={e => handleAddressChange('street', e.target.value)}
               />
             </div>
