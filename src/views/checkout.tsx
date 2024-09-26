@@ -7,7 +7,7 @@ import { set_user } from "../redux/features/userSlice";
 import Paypal from 'components/Paypal';
 import ProductCard from 'components/ProductCard';
 import { useLogin } from 'backend/login';
-import verifyAddress from 'backend/verify_address';
+import VerifyAddress from 'backend/verify_address';
 
 export default function Checkout() {
   const login = useLogin();
@@ -33,7 +33,7 @@ export default function Checkout() {
 
   const handleOnClick = useCallback(async () => {
     console.log("handleOnClick called with:", user);
-    const valid = await verifyAddress(`${user.address.street}, ${user.address.city}, ${user.address.state} ${user.address.zip}, ${user.address.country}`);
+    const valid = await VerifyAddress(`${user.address.street}, ${user.address.city}, ${user.address.state} ${user.address.zip}, ${user.address.country}`);
     setAddressValid(valid);
     setValidationMessage(valid ? "" : "Invalid Address");
     return valid;
